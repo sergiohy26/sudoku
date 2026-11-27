@@ -64,8 +64,9 @@
   /* Tablero fluido para cualquier celular y PC sin scroll */
   #board {
     display: grid; grid-template-columns: repeat(9, 1fr);
-      width: min(95vw, 52dvh);
-      height: min(95vw, 52dvh);
+       width: min(95vw, 440px, 56dvh);
+       height: min(95vw, 440px, 56dvh);
+
     background: var(--grid-bg); border: 2px solid var(--border-bold);
     flex-shrink: 0;
   }
