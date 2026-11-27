@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sudoku Progresivo - Cero Errores</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231e1e1e'/%3E%3Ctext x='256' y='365' font-family='sans-serif' font-size='330' font-weight='bold' fill='%23339af0' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+
+<style>
+  :root {
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --grid-bg: #252525;
+    --border-light: #3a3a3a;
+    --border-bold: #888888;
+    --text-main: #ffffff;
+    --text-fixed: #ffffff;
+    --text-user: #38bdf8;
+    --text-note: #a5d8ff;
+    --selected: #228be6;
+    --selected-ring: #74c0fc;
+    --highlight: #23354d;
+    --same-num: #1864ab;
+    --accent: #339af0;
+    --danger: #fa5252;
+    --success: #51cf66;
+    --gold: #fcc419;
+    --silver: #adb5bd;
+  }
+  * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 6px 10px;
+    background-color: var(--bg); color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    gap: 6px; height: 100dvh; max-height: 100dvh; overflow: hidden;
+  }
+
+  /* Barra Superior en una sola línea legible */
+  header {
+    width: 100%; max-width: 440px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 6px; padding: 4px 2px; flex-shrink: 0;
+  }
+  .level-badge {
+    font-size: clamp(1.15rem, 4.2vw, 1.4rem);
+    font-weight: 800; color: var(--accent);
+    white-space: nowrap; cursor: pointer;
+  }
+  .timer-display {
+    font-size: clamp(0.95rem, 3.6vw, 1.12rem);
+    font-weight: 700; color: #dee2e6;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .difficulty-tag {
+    font-size: clamp(0.78rem, 3vw, 0.9rem);
+    font-weight: 600; color: #d0d0d0; background: var(--surface);
+    padding: 5px 9px; border-radius: 12px; border: 1px solid var(--border-light);
+    white-space: nowrap;
+  }
+
+  /* Tablero fluido para cualquier celular y PC sin scroll */
+  #board {
+    display: grid; grid-template-columns: repeat(9, 1fr);
+    width: min(94vw, 440px, 50dvh);
+    height: min(94vw, 440px, 50dvh);
+    background: var(--grid-bg); border: 2px solid var(--border-bold);
+    flex-shrink: 0;
+  }
+  .cell {
+    border: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1.35rem, 5.2vw, 1.9rem);
+    font-weight: 700; cursor: pointer; position: relative;
+  }
+  .cell:nth-child(3n) { border-right: 2px solid var(--border-bold); }
+  .cell:nth-child(9n) { border-right: none; }
+  .cell:nth-child(n+19):nth-child(-n+27),
+  .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-bold); }
+
+  .cell.fixed { color: var(--text-fixed); }
+  .cell.user { color: var(--text-user); }
+  .cell.highlight { background-color: var(--highlight); }
+  .cell.same-num { background-color: var(--same-num); }
+  .cell.selected {
+    background-color: var(--selected) !important;
+    box-shadow: inset 0 0 0 2.5px var(--selected-ring);
+  }
+  .cell.error-flash { background-color: var(--danger) !important; color: #fff !important; }
+
+  .notes-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    width: 100%; height: 100%; padding: 1px;
+  }
+  .note-num {
+    font-size: clamp(0.62rem, 2.2vw, 0.76rem);
+    font-weight: 600; color: var(--text-note);
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+
+  /* Botones Notas y Borrar más altos */
+  .controls {
+    width: 100%; max-width: 440px;
+    display: flex; gap: 12px; flex-shrink: 0;
+  }
+  .tool-btn {
+    flex: 1; padding: 13px 10px; border: 1px solid var(--border-light);
+    background: var(--surface); color: var(--text-main);
+    border-radius: 12px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tool-btn.active {
+    background: var(--accent); color: #000; border-color: var(--accent);
+  }
+
+  /* Teclado en 2 filas cómodas (1-5 arriba, 6-9 abajo) */
+  .numpad-wrapper {
+    width: 100%; max-width: 440px;
+    display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
+  }
+  .numpad-row {
+    display: flex; justify-content: center; gap: 8px; width: 100%;
+  }
+  .num-btn {
+    width: calc((100% - 32px) / 5);
+    height: clamp(46px, 6.8dvh, 56px);
+    background: var(--surface);
+    border: 1px solid var(--border-light); border-radius: 11px;
+    color: var(--text-main); font-size: 1.65rem; font-weight: 700;
+    cursor: pointer; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .num-btn:active { background: var(--accent); color: #000; }
+  .num-count {
+    position: absolute; top: 3px; right: 6px;
+    font-size: 0.72rem; font-weight: 700; color: #cbd5e1;
+    line-height: 1;
+  }
+  .num-btn.completed {
+    background: rgba(81, 207, 102, 0.24);
+    border: 1.5px solid var(--success);
+    color: #8ce99a;
+  }
+  .num-btn.completed .num-count { display: none; }
+
+  /* Fila inferior de Récords + Idioma */
+  .bottom-bar {
+    width: 100%; max-width: 440px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 6px; padding: 2px 2px 4px 2px; flex-shrink: 0;
+  }
+  .records-group {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: clamp(0.75rem, 2.8vw, 0.85rem); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .rec-prev { color: var(--silver); }
+  .rec-best { color: var(--gold); }
+  .lang-btn {
+    background: var(--surface); color: #e9ecef;
+    border: 1px solid var(--border-light); border-radius: 8px;
+    padding: 5px 9px; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Modales (Victoria, Error, Bloqueo y Panel Secreto) */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px; z-index: 200;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    background: var(--surface); border: 1px solid var(--border-bold);
+    border-radius: 16px; padding: 22px 18px;
+    width: 100%; max-width: 390px; text-align: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.75);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .modal-title { font-size: 1.3rem; font-weight: 800; margin: 0; color: #fff; }
+  .modal-msg { font-size: 1rem; color: #dee2e6; margin: 0; line-height: 1.45; }
+  .record-badge {
+    background: rgba(252, 196, 25, 0.16); border: 1px solid var(--gold);
+    color: var(--gold); font-weight: 800; font-size: 0.95rem;
+    padding: 6px 12px; border-radius: 10px; display: none;
+  }
+  .record-badge.show { display: block; }
+  .modal-stats {
+    font-size: 0.92rem; font-weight: 700; color: #ced4da;
+    background: #161616; padding: 10px; border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .btn-primary {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: var(--selected); color: #fff;
+    font-size: 1.05rem; font-weight: 800; cursor: pointer;
+  }
+  .btn-secondary {
+    width: 100%; padding: 12px; border: 1px solid #5c677d; border-radius: 12px;
+    background: #181818; color: #e9ecef;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-danger {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: var(--danger); color: #fff;
+    font-size: 1.05rem; font-weight: 800; cursor: pointer;
+  }
+
+  /* Pantalla de Bloqueo */
+  #lockScreen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; z-index: 300;
+  }
+  #lockScreen.show { display: flex; }
+  .lock-top-lang {
+    position: absolute; top: 14px; right: 14px;
+  }
+  .input-box {
+    width: 100%; padding: 13px; border-radius: 10px;
+    border: 1px solid var(--border-bold); background: #121212;
+    color: #fff; font-size: 1.05rem; text-align: center;
+    font-weight: 700; user-select: text;
+  }
+  .error-text { color: var(--danger); font-size: 0.9rem; font-weight: 700; min-height: 20px; }
+
+  /* Panel Administrador Secreto */
+  .admin-section {
+    background: #141414; border: 1px solid var(--border-light);
+    border-radius: 12px; padding: 12px; text-align: left;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .admin-label { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
+  .select-box {
+    width: 100%; padding: 10px; border-radius: 8px;
+    background: var(--surface); color: #fff; border: 1px solid var(--border-bold);
+    font-size: 0.95rem; font-weight: 600;
+  }
+  .code-display {
+    background: #0d1b2a; border: 1px dashed var(--accent);
+    padding: 10px; border-radius: 8px; text-align: center;
+    font-size: 1.25rem; font-weight: 800; color: var(--gold);
+    letter-spacing: 1px; user-select: text;
+  }
+  .countdown-text { font-size: 0.88rem; font-weight: 700; color: var(--success); text-align: center; }
+  .small-row { display: flex; gap: 6px; }
+</style>
+</head>
+<body>
+<!-- PANTALLA DE BLOQUEO -->
+<div id="lockScreen">
+  <button class="lang-btn lock-top-lang" onclick="toggleLanguage()" id="lockLangBtn">🌐 EN</button>
+  <div class="modal-card">
+    <h2 class="modal-title" id="lockTitle">🔐 Sudoku Progresivo</h2>
+    <p class="modal-msg" id="lockDesc">Ingresa tu código de activación exclusivo para acceder al juego.</p>
+    <input type="text" id="accessCodeInput" class="input-box" placeholder="Ej: SDK-8492-A7" autocomplete="off">
+    <div class="error-text" id="lockErrorMsg"></div>
+    <button class="btn-primary" id="lockSubmitBtn" onclick="verifyAccessCode()">Activar Acceso</button>
+  </div>
+</div>
+
+<header>
+  <div class="level-badge" id="levelDisplay" onclick="handleSecretTap()">Nivel 1</div>
+  <div class="timer-display" id="timerDisplay">⏱ 00:00</div>
+  <div class="difficulty-tag" id="diffDisplay">Principiante • 46 pistas</div>
+</header>
+
+<div id="board"></div>
+
+<div class="controls">
+  <button class="tool-btn" id="noteBtn" onclick="toggleNotes()">✏️ Notas: OFF</button>
+  <button class="tool-btn" id="eraseBtn" onclick="eraseCell()">⌫ Borrar</button>
+</div>
+
+<div class="numpad-wrapper">
+  <div class="numpad-row">
+    <button class="num-btn" id="numBtn1" onclick="inputNumber(1)">1<span class="num-count" id="cnt1">9</span></button>
+    <button class="num-btn" id="numBtn2" onclick="inputNumber(2)">2<span class="num-count" id="cnt2">9</span></button>
+    <button class="num-btn" id="numBtn3" onclick="inputNumber(3)">3<span class="num-count" id="cnt3">9</span></button>
+    <button class="num-btn" id="numBtn4" onclick="inputNumber(4)">4<span class="num-count" id="cnt4">9</span></button>
+    <button class="num-btn" id="numBtn5" onclick="inputNumber(5)">5<span class="num-count" id="cnt5">9</span></button>
+  </div>
+  <div class="numpad-row">
+    <button class="num-btn" id="numBtn6" onclick="inputNumber(6)">6<span class="num-count" id="cnt6">9</span></button>
+    <button class="num-btn" id="numBtn7" onclick="inputNumber(7)">7<span class="num-count" id="cnt7">9</span></button>
+    <button class="num-btn" id="numBtn8" onclick="inputNumber(8)">8<span class="num-count" id="cnt8">9</span></button>
+    <button class="num-btn" id="numBtn9" onclick="inputNumber(9)">9<span class="num-count" id="cnt9">9</span></button>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="records-group">
+    <span class="rec-prev" id="prevTimeDisplay">⏱ Anterior: --:--</span>
+    <span>|</span>
+    <span class="rec-best" id="bestTimeDisplay">🏆 Mejor Principiante: --:--</span>
+  </div>
+  <button class="lang-btn" id="gameLangBtn" onclick="toggleLanguage()">🌐 EN</button>
+</div>
+
+<div class="modal-overlay" id="winModal">
+  <div class="modal-card">
+    <h2 class="modal-title" id="winTitle">🌟 ¡Felicidades! ¡Nivel 1 Superado!</h2>
+    <p class="modal-msg" id="winMsg">¡Excelente trabajo! Tu mente está cada vez más ágil. ¡Sigue así!</p>
+    <div class="record-badge" id="winRecordBadge">⭐ ¡Nuevo récord personal!</div>
+    <div class="modal-stats" id="winStats">⏱ Tiempo: 00:00 | 🏆 Mejor: 00:00</div>
+    <button class="btn-primary" id="winNextBtn" onclick="advanceNextLevel()">Continuar al Nivel 2 ▶</button>
+    <button class="btn-secondary" id="winReplayBtn" onclick="replayCurrentLevel()">🔄 Repetir Nivel 1 (Mejorar tiempo)</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loseModal">
+  <div class="modal-card">
+    <h2 class="modal-title" id="loseTitle">✨ ¡No te rindas! ¡Sigue adelante!</h2>
+    <p class="modal-msg" id="loseMsg">Cada error es parte del aprendizaje. Tómate tu tiempo, ¡tú puedes!</p>
+    <button class="btn-danger" id="loseRetryBtn" onclick="retryAfterError()">Reintentar Nivel 1 🔄</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-card" style="max-height: 92dvh; overflow-y: auto;">
+    <h2 class="modal-title">🛠️ Panel Exclusivo de Control</h2>
+
+    <div class="admin-section">
+      <div class="admin-label">1. Generar Código Temporal de Acceso</div>
+      <select id="codeDurationSelect" class="select-box">
+        <option value="60">Válido por 60 segundos (1 min)</option>
+        <option value="90" selected>Válido por 90 segundos (1.5 min)</option>
+        <option value="120">Válido por 2 minutos</option>
+        <option value="180">Válido por 3 minutos</option>
+      </select>
+      <button class="btn-primary" style="padding:10px;" onclick="generateTempCode()">Generar Nuevo Código</button>
+      <div class="code-display" id="generatedCodeBox">---</div>
+      <div class="countdown-text" id="codeCountdownBox"></div>
+      <button class="btn-secondary" style="padding:10px;" id="copyWaBtn" onclick="copyWhatsAppMessage()">📲 Copiar mensaje para WhatsApp</button>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-label">2. Respaldo de Nivel y Récords</div>
+      <button class="btn-secondary" style="padding:9px;" onclick="exportBackup()">📋 Copiar código de respaldo</button>
+      <div class="small-row">
+        <input type="text" id="backupInput" class="input-box" style="padding:8px; font-size:0.85rem;" placeholder="Pega respaldo aquí">
+        <button class="btn-primary" style="padding:8px 12px; width:auto;" onclick="importBackup()">Restaurar</button>
+      </div>
+      <div id="adminStatusMsg" style="font-size:0.82rem; color:#8ce99a; font-weight:700;"></div>
+    </div>
+
+    <button class="btn-secondary" onclick="closeAdminModal()">Cerrar Panel</button>
+  </div>
+</div>
+
+<script>
+  const MASTER_KEY = "Sergio#9806";
+  const APP_URL = "https://sergiohy26.github.io/sudoku/";
+  const SECRET_SALT = 7391;
+
+  const BLOQUES = {
+    principiante: 20, // Niveles 1 al 20 (46 a 37 pistas)
+    intermedio: 40,   // Siguientes 40 niveles (36 a 27 pistas)
+    dificil: 60,      // Siguientes 60 niveles (26 a 22 pistas)
+    maestro: 80       // Siguientes 80 niveles (21 a 18 pistas)
+                      // En adelante: Gran Maestro infinito (17 pistas)
+  };
+
+  let lang = localStorage.getItem('sudoku_lang') || 'es';
+
+  const I18N = {
+    es: {
+      level: "Nivel",
+      clues: "pistas",
+      notesOn: "✏️ Notas: ON",
+      notesOff: "✏️ Notas: OFF",
+      erase: "⌫ Borrar",
+      prev: "Anterior",
+      best: "Mejor",
+      blocks: {
+        principiante: "Principiante",
+        intermedio: "Intermedio",
+        dificil: "Difícil",
+        maestro: "Maestro",
+        gran_maestro: "Gran Maestro"
+      },
+      winTitle: (l) => `🌟 ¡Felicidades! ¡Nivel ${l} Superado!`,
+      winMsg: "¡Excelente trabajo! Tu mente está cada vez más ágil. ¡Sigue así!",
+      newRecord: "⭐ ¡Nuevo récord personal!",
+      timeLbl: "Tiempo",
+      nextBtn: (l) => `Continuar al Nivel ${l} ▶`,
+      replayBtn: (l) => `🔄 Repetir Nivel ${l} (Mejorar tiempo)`,
+      loseTitle: "✨ ¡No te rindas! ¡Sigue adelante!",
+      loseMsg: "Cada error es parte del aprendizaje. Tómate tu tiempo, ¡tú puedes!",
+      retryBtn: (l) => `Reintentar Nivel ${l} 🔄`,
+      lockTitle: "🔐 Sudoku Progresivo",
+      lockDesc: "Ingresa tu código de activación exclusivo para acceder al juego.",
+      lockPlaceholder: "Ej: SDK-8492-A7",
+      lockBtn: "Activar Acceso",
+      invalidCode: "❌ Código incorrecto o expirado.",
+      blockedMsg: (t) => `⛔ Acceso bloqueado por seguridad. Intenta en ${t}.`
+    },
+    en: {
+      level: "Level",
+      clues: "clues",
+      notesOn: "✏️ Notes: ON",
+      notesOff: "✏️ Notes: OFF",
+      erase: "⌫ Erase",
+      prev: "Previous",
+      best: "Best",
+      blocks: {
+        principiante: "Beginner",
+        intermedio: "Intermediate",
+        dificil: "Hard",
+        maestro: "Master",
+        gran_maestro: "Grandmaster"
+      },
+      winTitle: (l) => `🌟 Congratulations! Level ${l} Cleared!`,
+      winMsg: "Great job! Your mind is getting sharper every day. Keep it up!",
+      newRecord: "⭐ New personal record!",
+      timeLbl: "Time",
+      nextBtn: (l) => `Continue to Level ${l} ▶`,
+      replayBtn: (l) => `🔄 Replay Level ${l} (Beat time)`,
+      loseTitle: "✨ Don't give up! Keep going!",
+      loseMsg: "Every mistake is part of learning. Take your time, you can do it!",
+      retryBtn: (l) => `Retry Level ${l} 🔄`,
+      lockTitle: "🔐 Progressive Sudoku",
+      lockDesc: "Enter your exclusive activation code to access the game.",
+      lockPlaceholder: "Ex: SDK-8492-A7",
+      lockBtn: "Activate Access",
+      invalidCode: "❌ Invalid or expired code.",
+      blockedMsg: (t) => `⛔ Access locked for security. Try again in ${t}.`
+    }
+  };
+  function toggleLanguage() {
+    lang = lang === 'es' ? 'en' : 'es';
+    localStorage.setItem('sudoku_lang', lang);
+    applyLanguageTexts();
+  }
+
+  function applyLanguageTexts() {
+    const t = I18N[lang];
+    const btnText = lang === 'es' ? '🌐 EN' : '🌐 ES';
+    document.getElementById('gameLangBtn').textContent = btnText;
+    document.getElementById('lockLangBtn').textContent = btnText;
+
+    document.getElementById('lockTitle').textContent = t.lockTitle;
+    document.getElementById('lockDesc').textContent = t.lockDesc;
+    document.getElementById('accessCodeInput').placeholder = t.lockPlaceholder;
+    document.getElementById('lockSubmitBtn').textContent = t.lockBtn;
+
+    document.getElementById('noteBtn').textContent = noteMode ? t.notesOn : t.notesOff;
+    document.getElementById('eraseBtn').textContent = t.erase;
+
+    const cfg = getLevelConfig(level);
+    document.getElementById('levelDisplay').textContent = `${t.level} ${level}`;
+    document.getElementById('diffDisplay').textContent = `${t.blocks[cfg.key]} • ${currentCluesCount} ${t.clues}`;
+    updateBottomRecords();
+  }
+
+  let lastGeneratedCode = "";
+  let lastGeneratedDuration = 90;
+  let codeTimerInterval = null;
+
+  function checkDeviceAccess() {
+    const unlocked = localStorage.getItem('sudoku_unlocked') === 'true';
+    if (!unlocked) {
+      document.getElementById('lockScreen').classList.add('show');
+    } else {
+      document.getElementById('lockScreen').classList.remove('show');
+    }
+  }
+
+  function formatRemainingBlock(ms) {
+    const totalSec = Math.ceil(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function verifyAccessCode() {
+    const t = I18N[lang];
+    const errEl = document.getElementById('lockErrorMsg');
+    const raw = document.getElementById('accessCodeInput').value.trim();
+    if (!raw) return;
+
+    if (raw === MASTER_KEY) {
+      localStorage.setItem('sudoku_unlocked', 'true');
+      localStorage.setItem('sudoku_is_owner', 'true');
+      localStorage.removeItem('sudoku_fail_count');
+      localStorage.removeItem('sudoku_lock_until');
+      errEl.textContent = "";
+      document.getElementById('lockScreen').classList.remove('show');
+      requestWakeLock();
+      return;
+    }
+
+    const lockUntil = parseInt(localStorage.getItem('sudoku_lock_until') || '0');
+    const now = Date.now();
+    if (lockUntil > now) {
+      errEl.textContent = t.blockedMsg(formatRemainingBlock(lockUntil - now));
+      return;
+    }
+
+    if (validateTemporalToken(raw.toUpperCase())) {
+      localStorage.setItem('sudoku_unlocked', 'true');
+      localStorage.removeItem('sudoku_fail_count');
+      localStorage.removeItem('sudoku_lock_until');
+      errEl.textContent = "";
+      document.getElementById('lockScreen').classList.remove('show');
+      requestWakeLock();
+      return;
+    }
+
+    let fails = parseInt(localStorage.getItem('sudoku_fail_count') || '0') + 1;
+    localStorage.setItem('sudoku_fail_count', fails);
+
+    if (fails >= 3) {
+      let strikes = parseInt(localStorage.getItem('sudoku_lock_strikes') || '0') + 1;
+      localStorage.setItem('sudoku_lock_strikes', strikes);
+      localStorage.setItem('sudoku_fail_count', '0');
+
+      const hours = strikes === 1 ? 1 : (strikes === 2 ? 6 : 24);
+      const until = now + hours * 3600 * 1000;
+      localStorage.setItem('sudoku_lock_until', until);
+      errEl.textContent = t.blockedMsg(`${hours}h`);
+    } else {
+      errEl.textContent = `${t.invalidCode} (${fails}/3)`;
+    }
+  }
+
+  function computeChecksum(expBase36) {
+    let sum = SECRET_SALT;
+    for (let i = 0; i < expBase36.length; i++) {
+      sum = (sum * 31 + expBase36.charCodeAt(i)) % 1296;
+    }
+    return sum.toString(36).toUpperCase().padStart(2, '0');
+  }
+
+  function validateTemporalToken(code) {
+    const parts = code.split('-');
+    if (parts.length !== 3 || parts.at(0) !== 'SDK') return false;
+    const expBase36 = parts.at(1);
+    const chk = parts.at(2);
+    if (computeChecksum(expBase36) !== chk) return false;
+    const expSec = parseInt(expBase36, 36);
+    if (isNaN(expSec)) return false;
+    const nowSec = Math.floor(Date.now() / 1000);
+    return nowSec <= expSec;
+  }
+
+  let tapCount = 0;
+  let firstTapTime = 0;
+
+  function handleSecretTap() {
+    if (localStorage.getItem('sudoku_is_owner') !== 'true') return;
+    const now = Date.now();
+    if (tapCount === 0 || (now - firstTapTime) > 5000) {
+      tapCount = 1;
+      firstTapTime = now;
+    } else {
+      tapCount++;
+      if (tapCount >= 7) {
+        tapCount = 0;
+        openAdminModal();
+      }
+    }
+  }
+
+  function openAdminModal() {
+    pauseTimer();
+    document.getElementById('adminStatusMsg').textContent = "";
+    document.getElementById('adminModal').classList.add('show');
+  }
+
+  function closeAdminModal() {
+    document.getElementById('adminModal').classList.remove('show');
+    if (!locked) resumeTimer();
+  }
+
+  function generateTempCode() {
+    const sec = parseInt(document.getElementById('codeDurationSelect').value);
+    lastGeneratedDuration = sec;
+    const expSec = Math.floor(Date.now() / 1000) + sec;
+    const expBase36 = expSec.toString(36).toUpperCase();
+    const chk = computeChecksum(expBase36);
+    lastGeneratedCode = `SDK-${expBase36}-${chk}`;
+
+    document.getElementById('generatedCodeBox').textContent = lastGeneratedCode;
+    if (codeTimerInterval) clearInterval(codeTimerInterval);
+
+    const updateCountdown = () => {
+      const rem = expSec - Math.floor(Date.now() / 1000);
+      const box = document.getElementById('codeCountdownBox');
+      if (rem <= 0) {
+        box.textContent = "⚠️ Código expirado. Genera uno nuevo.";
+        box.style.color = "var(--danger)";
+        clearInterval(codeTimerInterval);
+      } else {
+        const m = String(Math.floor(rem / 60)).padStart(2, '0');
+        const s = String(rem % 60).padStart(2, '0');
+        box.textContent = `⏳ Expira en: ${m}:${s}`;
+        box.style.color = "var(--success)";
+      }
+    };
+    updateCountdown();
+    codeTimerInterval = setInterval(updateCountdown, 1000);
+  }
+
+  function copyWhatsAppMessage() {
+    if (!lastGeneratedCode) generateTempCode();
+    const msg = `🧩 *Sudoku Progresivo - Cero Errores*\nAquí tienes tu acceso exclusivo. Entra ahora mismo al siguiente enlace e ingresa tu código (válido por ${lastGeneratedDuration} segundos):\n\n🔗 Link: ${APP_URL}\n🔑 Código: *${lastGeneratedCode}*`;
+    navigator.clipboard.writeText(msg).then(() => {
+      document.getElementById('adminStatusMsg').textContent = "✅ Mensaje copiado listo para pegar en WhatsApp.";
+    });
+  }
+
+  function exportBackup() {
+    const records = JSON.parse(localStorage.getItem('sudoku_best_records') || '{}');
+    const payload = JSON.stringify({ l: level, r: records });
+    const token = "BKP-" + btoa(payload);
+    navigator.clipboard.writeText(token).then(() => {
+      document.getElementById('adminStatusMsg').textContent = "✅ Código de respaldo copiado. Guárdalo en tus notas o WhatsApp.";
+    });
+  }
+
+  function importBackup() {
+    const raw = document.getElementById('backupInput').value.trim();
+    if (!raw.startsWith("BKP-")) {
+      document.getElementById('adminStatusMsg').textContent = "❌ Código de respaldo inválido.";
+      return;
+    }
+    try {
+      const data = JSON.parse(atob(raw.slice(4)));
+      if (data.l && data.l >= 1) {
+        level = data.l;
+        localStorage.setItem('sudoku_pro_v2_level', level);
+      }
+      if (data.r) {
+        localStorage.setItem('sudoku_best_records', JSON.stringify(data.r));
+      }
+      document.getElementById('adminStatusMsg').textContent = "✅ ¡Progreso y récords restaurados!";
+      startLevel();
+    } catch (e) {
+      document.getElementById('adminStatusMsg').textContent = "❌ Error al leer el respaldo.";
+    }
+  }
+  let elapsedSeconds = 0;
+  let timerInterval = null;
+  let wakeLock = null;
+
+  function formatTime(sec) {
+    if (sec === null || sec === undefined) return "--:--";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${String(h).padStart(2, '0')}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+
+  function startTimer(reset = true) {
+    if (reset) elapsedSeconds = 0;
+    updateTimerUI();
+    pauseTimer();
+    timerInterval = setInterval(() => {
+      if (!locked && !document.hidden) {
+        elapsedSeconds++;
+        updateTimerUI();
+      }
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  function resumeTimer() {
+    if (!timerInterval && !locked) {
+      timerInterval = setInterval(() => {
+        if (!locked && !document.hidden) {
+          elapsedSeconds++;
+          updateTimerUI();
+        }
+      }, 1000);
+    }
+  }
+
+  function updateTimerUI() {
+    document.getElementById('timerDisplay').textContent = `⏱ ${formatTime(elapsedSeconds)}`;
+  }
+
+  function updateBottomRecords() {
+    const t = I18N[lang];
+    const cfg = getLevelConfig(level);
+    const prevSec = localStorage.getItem('sudoku_prev_time');
+    const records = JSON.parse(localStorage.getItem('sudoku_best_records') || '{}');
+    const bestBlockSec = records[cfg.key] !== undefined ? records[cfg.key] : null;
+
+    document.getElementById('prevTimeDisplay').textContent =
+      `⏱ ${t.prev}: ${prevSec !== null ? formatTime(parseInt(prevSec)) : '--:--'}`;
+    document.getElementById('bestTimeDisplay').textContent =
+      `🏆 ${t.best} ${t.blocks[cfg.key]}: ${formatTime(bestBlockSec)}`;
+  }
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && localStorage.getItem('sudoku_unlocked') === 'true') {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseTimer();
+    } else {
+      if (!locked && !document.getElementById('adminModal').classList.contains('show')) {
+        resumeTimer();
+      }
+      requestWakeLock();
+    }
+  });
+
+  function triggerVibration(pattern) {
+    try {
+      if ('vibrate' in navigator) navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+
+  let level = parseInt(localStorage.getItem('sudoku_pro_v2_level')) || 1;
+  let currentCluesCount = 46;
+  let solution = [];
+  let initialBoard = [];
+  let currentBoard = [];
+  let notes = [];
+  let selectedIdx = null;
+  let noteMode = false;
+  let locked = false;
+
+  function getLevelConfig(lvl) {
+    const lim1 = BLOQUES.principiante;
+    const lim2 = lim1 + BLOQUES.intermedio;
+    const lim3 = lim2 + BLOQUES.dificil;
+    const lim4 = lim3 + BLOQUES.maestro;
+
+    if (lvl <= lim1) {
+      const pos = lvl - 1;
+      const clues = Math.round(46 - (pos / Math.max(1, BLOQUES.principiante - 1)) * 9);
+      return { key: "principiante", clues: clues, maxPerDigit: 6 };
+    }
+    if (lvl <= lim2) {
+      const pos = lvl - lim1 - 1;
+      const clues = Math.round(36 - (pos / Math.max(1, BLOQUES.intermedio - 1)) * 9);
+      return { key: "intermedio", clues: clues, maxPerDigit: 5 };
+    }
+    if (lvl <= lim3) {
+      const pos = lvl - lim2 - 1;
+      const clues = Math.round(26 - (pos / Math.max(1, BLOQUES.dificil - 1)) * 4);
+      return { key: "dificil", clues: clues, maxPerDigit: 4 };
+    }
+    if (lvl <= lim4) {
+      const pos = lvl - lim3 - 1;
+      const clues = Math.round(21 - (pos / Math.max(1, BLOQUES.maestro - 1)) * 3);
+      return { key: "maestro", clues: clues, maxPerDigit: 3 };
+    }
+    return { key: "gran_maestro", clues: 17, maxPerDigit: 3 };
+  }
+
+  function isValid(b, idx, num) {
+    const r = Math.floor(idx / 9), c = idx % 9;
+    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+    for (let i = 0; i < 9; i++) {
+      if (b[r * 9 + i] === num) return false;
+      if (b[i * 9 + c] === num) return false;
+      if (b[(br + Math.floor(i / 3)) * 9 + (bc + (i % 3))] === num) return false;
+    }
+    return true;
+  }
+
+  function generateSolvedBoard() {
+    const board = Array(81).fill(0);
+    function solve(idx) {
+      if (idx === 81) return true;
+      const nums = Array.from({length: 9}, (_, k) => k + 1).sort(() => Math.random() - 0.5);
+      for (let n of nums) {
+        if (isValid(board, idx, n)) {
+          board[idx] = n;
+          if (solve(idx + 1)) return true;
+          board[idx] = 0;
+        }
+      }
+      return false;
+    }
+    solve(0);
+    return board;
+  }
+  function countSolutions(board, limit = 2) {
+    let idx = board.indexOf(0);
+    if (idx === -1) return 1;
+    let count = 0;
+    for (let n = 1; n <= 9; n++) {
+      if (isValid(board, idx, n)) {
+        board[idx] = n;
+        count += countSolutions(board, limit);
+        board[idx] = 0;
+        if (count >= limit) return count;
+      }
+    }
+    return count;
+  }
+
+  function createUniquePuzzle(targetClues, maxPerDigit) {
+    const maxPerUnit = targetClues >= 37 ? 6 : (targetClues >= 27 ? 5 : 4);
+    const minPerUnit = targetClues >= 27 ? 2 : 1;
+    let bestPuzzle = null;
+
+    for (let attempt = 0; attempt < 18; attempt++) {
+      const sol = generateSolvedBoard();
+      const puzzle = [...sol];
+      let currentClues = 81;
+
+      const rowCnt = Array(9).fill(9);
+      const colCnt = Array(9).fill(9);
+      const boxCnt = Array(9).fill(9);
+      const numCnt = Array(10).fill(9);
+
+      let progress = true;
+      while (currentClues > targetClues && progress) {
+        progress = false;
+        const candidates = [];
+        for (let i = 0; i < 81; i++) {
+          if (puzzle[i] === 0) continue;
+          const r = Math.floor(i / 9), c = i % 9;
+          const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+          const val = puzzle[i];
+          if (rowCnt[r] <= minPerUnit || colCnt[c] <= minPerUnit || boxCnt[b] <= minPerUnit) continue;
+          if (targetClues >= 27 && numCnt[val] <= 2) continue;
+
+          const digitOver = numCnt[val] > maxPerDigit ? (numCnt[val] - maxPerDigit) * 25 : 0;
+          const crowdScore = digitOver + Math.max(rowCnt[r], colCnt[c], boxCnt[b]) * 10 + (rowCnt[r] + colCnt[c] + boxCnt[b]) + Math.random() * 4;
+          candidates.push({ i, r, c, b, val, crowdScore });
+        }
+
+        candidates.sort((a, b) => b.crowdScore - a.crowdScore);
+
+        for (const cand of candidates) {
+          if (currentClues <= targetClues) break;
+          const backup = puzzle[cand.i];
+          puzzle[cand.i] = 0;
+          if (countSolutions([...puzzle], 2) === 1) {
+            currentClues--;
+            rowCnt[cand.r]--;
+            colCnt[cand.c]--;
+            boxCnt[cand.b]--;
+            numCnt[cand.val]--;
+            progress = true;
+            break;
+          } else {
+            puzzle[cand.i] = backup;
+          }
+        }
+      }
+
+      const balanced = rowCnt.every(v => v <= maxPerUnit) &&
+                       colCnt.every(v => v <= maxPerUnit) &&
+                       boxCnt.every(v => v <= maxPerUnit) &&
+                       numCnt.slice(1).every(v => v <= maxPerDigit);
+
+      bestPuzzle = { sol, puzzle, actualClues: currentClues };
+      if (balanced && currentClues <= targetClues + 1) break;
+    }
+
+    return bestPuzzle;
+  }
+
+  function startLevel() {
+    locked = false;
+    selectedIdx = null;
+    const cfg = getLevelConfig(level);
+    const { sol, puzzle, actualClues } = createUniquePuzzle(cfg.clues, cfg.maxPerDigit);
+    solution = sol;
+    initialBoard = puzzle;
+    currentCluesCount = actualClues;
+
+    applyLanguageTexts();
+    resetCurrentProgress();
+    startTimer(true);
+  }
+
+  function resetCurrentProgress() {
+    currentBoard = [...initialBoard];
+    notes = Array.from({length: 81}, () => []);
+    renderBoard();
+  }
+
+  function renderBoard() {
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+    const selVal = selectedIdx !== null ? currentBoard[selectedIdx] : 0;
+    const selR = selectedIdx !== null ? Math.floor(selectedIdx / 9) : -1;
+    const selC = selectedIdx !== null ? selectedIdx % 9 : -1;
+    const selB = selectedIdx !== null ? Math.floor(selR / 3) * 3 + Math.floor(selC / 3) : -1;
+
+    for (let i = 0; i < 81; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const r = Math.floor(i / 9), c = i % 9;
+      const b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+
+      if (initialBoard[i] !== 0) {
+        cell.classList.add('fixed');
+        cell.textContent = initialBoard[i];
+      } else if (currentBoard[i] !== 0) {
+        cell.classList.add('user');
+        cell.textContent = currentBoard[i];
+      } else if (notes[i].length > 0) {
+        const ng = document.createElement('div');
+        ng.className = 'notes-grid';
+        for (let n = 1; n <= 9; n++) {
+          const sp = document.createElement('div');
+          sp.className = 'note-num';
+          sp.textContent = notes[i].includes(n) ? n : '';
+          ng.appendChild(sp);
+        }
+        cell.appendChild(ng);
+      }
+
+      if (i === selectedIdx) {
+        cell.classList.add('selected');
+      } else if (selectedIdx !== null) {
+        if (selVal !== 0 && currentBoard[i] === selVal) {
+          cell.classList.add('same-num');
+        } else if (r === selR || c === selC || b === selB) {
+          cell.classList.add('highlight');
+        }
+      }
+
+      cell.onclick = () => { if (!locked) { selectedIdx = i; renderBoard(); } };
+      boardEl.appendChild(cell);
+    }
+    updateNumpadStatus();
+  }
+  function updateNumpadStatus() {
+    for (let n = 1; n <= 9; n++) {
+      const count = currentBoard.filter(val => val === n).length;
+      const remaining = 9 - count;
+      const btn = document.getElementById(`numBtn${n}`);
+      const cntEl = document.getElementById(`cnt${n}`);
+      if (cntEl) cntEl.textContent = remaining > 0 ? remaining : '';
+      if (btn) btn.classList.toggle('completed', remaining === 0);
+    }
+  }
+
+  function toggleNotes() {
+    noteMode = !noteMode;
+    const t = I18N[lang];
+    const btn = document.getElementById('noteBtn');
+    btn.textContent = noteMode ? t.notesOn : t.notesOff;
+    btn.classList.toggle('active', noteMode);
+  }
+
+  function eraseCell() {
+    if (locked || selectedIdx === null || initialBoard[selectedIdx] !== 0) return;
+    currentBoard[selectedIdx] = 0;
+    notes[selectedIdx] = [];
+    renderBoard();
+  }
+
+  function inputNumber(num) {
+    if (locked || selectedIdx === null || initialBoard[selectedIdx] !== 0) return;
+
+    if (noteMode) {
+      if (currentBoard[selectedIdx] !== 0) return;
+      const idx = notes[selectedIdx].indexOf(num);
+      if (idx > -1) notes[selectedIdx].splice(idx, 1);
+      else notes[selectedIdx].push(num);
+      renderBoard();
+      return;
+    }
+
+    if (num !== solution[selectedIdx]) {
+      locked = true;
+      pauseTimer();
+      triggerVibration(Array.of(80, 50, 80));
+      const cells = document.querySelectorAll('.cell');
+      cells[selectedIdx].textContent = num;
+      cells[selectedIdx].classList.add('error-flash');
+
+      const t = I18N[lang];
+      document.getElementById('loseTitle').textContent = t.loseTitle;
+      document.getElementById('loseMsg').textContent = t.loseMsg;
+      document.getElementById('loseRetryBtn').textContent = t.retryBtn(level);
+      setTimeout(() => {
+        document.getElementById('loseModal').classList.add('show');
+      }, 350);
+      return;
+    }
+
+    currentBoard[selectedIdx] = num;
+    notes[selectedIdx] = [];
+    clearRelatedNotes(selectedIdx, num);
+    renderBoard();
+
+    if (currentBoard.every((val, idx) => val === solution[idx])) {
+      locked = true;
+      pauseTimer();
+      triggerVibration(Array.of(120));
+
+      const cfg = getLevelConfig(level);
+      const records = JSON.parse(localStorage.getItem('sudoku_best_records') || '{}');
+      const prevBest = records[cfg.key];
+      let isNewRecord = false;
+
+      if (prevBest === undefined || elapsedSeconds < prevBest) {
+        records[cfg.key] = elapsedSeconds;
+        localStorage.setItem('sudoku_best_records', JSON.stringify(records));
+        isNewRecord = true;
+      }
+
+      localStorage.setItem('sudoku_prev_time', elapsedSeconds);
+      updateBottomRecords();
+
+      const t = I18N[lang];
+      document.getElementById('winTitle').textContent = t.winTitle(level);
+      document.getElementById('winMsg').textContent = t.winMsg;
+      const badge = document.getElementById('winRecordBadge');
+      badge.textContent = t.newRecord;
+      badge.classList.toggle('show', isNewRecord);
+
+      document.getElementById('winStats').textContent =
+        `⏱ ${t.timeLbl}: ${formatTime(elapsedSeconds)}  |  🏆 ${t.best} ${t.blocks[cfg.key]}: ${formatTime(records[cfg.key])}`;
+      document.getElementById('winNextBtn').textContent = t.nextBtn(level + 1);
+      document.getElementById('winReplayBtn').textContent = t.replayBtn(level);
+
+      document.getElementById('winModal').classList.add('show');
+    }
+  }
+
+  function advanceNextLevel() {
+    document.getElementById('winModal').classList.remove('show');
+    level++;
+    localStorage.setItem('sudoku_pro_v2_level', level);
+    startLevel();
+  }
+
+  function replayCurrentLevel() {
+    document.getElementById('winModal').classList.remove('show');
+    startLevel();
+  }
+
+  function retryAfterError() {
+    document.getElementById('loseModal').classList.remove('show');
+    locked = false;
+    resetCurrentProgress();
+    startTimer(true);
+  }
+
+  function clearRelatedNotes(idx, num) {
+    const r = Math.floor(idx / 9), c = idx % 9;
+    const targetB = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+    for (let i = 0; i < 81; i++) {
+      const ir = Math.floor(i / 9), ic = i % 9;
+      const ib = Math.floor(ir / 3) * 3 + Math.floor(ic / 3);
+      if (ir === r || ic === c || ib === targetB) {
+        notes[i] = notes[i].filter(n => n !== num);
+      }
+    }
+  }
+
+  checkDeviceAccess();
+  startLevel();
+  requestWakeLock();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
+</body>
+</html>
