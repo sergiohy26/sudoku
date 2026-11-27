@@ -90,9 +90,7 @@
     .cell {
       font-size: clamp(1.05rem, 3.3dvh, 1.6rem);
     }
-    .note-num {
-      font-size: clamp(0.5rem, 1.3dvh, 0.7rem);
-    }
+
   }
 
   .cell:nth-child(3n) { border-right: 2px solid var(--border-bold); }
@@ -119,7 +117,15 @@
     font-size: clamp(0.84rem, 3vw, 1.05rem);
     font-weight: 600; color: var(--text-note);
     display: flex; align-items: center; justify-content: center; line-height: 1;
+    min-height: 0; overflow: hidden;
   }
+
+  @media (orientation: landscape) {
+    .note-num {
+      font-size: clamp(0.48rem, 1.25dvh, 0.66rem);
+    }
+  }
+
 
   /* Botones Notas y Borrar más altos */
   .controls {
