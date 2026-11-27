@@ -43,236 +43,237 @@
     display: flex; justify-content: space-between; align-items: center;
     gap: 6px; padding: 4px 2px; flex-shrink: 0;
   }
-.level-badge {
-  font-size: clamp(1.26rem, 4.6vw, 1.54rem);
-  font-weight: 800; color: var(--accent);
-  white-space: nowrap; cursor: pointer;
-}
-.timer-display {
-  font-size: clamp(1.05rem, 4vw, 1.24rem);
-  font-weight: 700; color: #dee2e6;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.difficulty-tag {
-  font-size: clamp(0.86rem, 3.3vw, 0.99rem);
-  font-weight: 600; color: #d0d0d0; background: var(--surface);
-  padding: 5px 9px; border-radius: 12px; border: 1px solid var(--border-light);
-  white-space: nowrap;
-}
+  .level-badge {
+    font-size: clamp(1.26rem, 4.6vw, 1.54rem);
+    font-weight: 800; color: var(--accent);
+    white-space: nowrap; cursor: pointer;
+  }
+  .timer-display {
+    font-size: clamp(1.05rem, 4vw, 1.24rem);
+    font-weight: 700; color: #dee2e6;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .difficulty-tag {
+    font-size: clamp(0.86rem, 3.3vw, 0.99rem);
+    font-weight: 600; color: #d0d0d0; background: var(--surface);
+    padding: 5px 9px; border-radius: 12px; border: 1px solid var(--border-light);
+    white-space: nowrap;
+  }
 
-/* Tablero fluido para cualquier celular y PC sin scroll */
-#board {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  grid-template-rows: repeat(9, 1fr);
-  width: min(95vw, 440px, 56dvh);
-  height: min(95vw, 440px, 56dvh);
-  background: var(--grid-bg); border: 2px solid var(--border-bold); border-radius: 6px; overflow: hidden;
-  flex-shrink: 0;
-  margin-top: -4px;
-}
-
-.cell {
-  border: 1px solid var(--border-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(1.7rem, 7.2vw, 2.35rem);
-  font-weight: 700;
-  cursor: pointer; position: relative; transition: background 0.1s;
-  line-height: 1;
-}
-
-@media (orientation: landscape) {
+  /* Tablero fluido para cualquier celular y PC sin scroll */
   #board {
-    width: min(440px, 48dvh);
-    height: min(440px, 48dvh);
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: min(95vw, 440px, 56dvh);
+    height: min(95vw, 440px, 56dvh);
+    background: var(--grid-bg); border: 2px solid var(--border-bold); border-radius: 6px; overflow: hidden;
+    flex-shrink: 0;
+    margin-top: -4px;
   }
+
   .cell {
-    font-size: clamp(1.05rem, 3.3dvh, 1.6rem);
+    border: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1.7rem, 7.2vw, 2.35rem);
+    font-weight: 700;
+    cursor: pointer; position: relative; transition: background 0.1s;
+    line-height: 1; overflow: hidden;
   }
-}
 
-.cell:nth-child(3n) { border-right: 2px solid var(--border-bold); }
-.cell:nth-child(9n) { border-right: none; }
-.cell:nth-child(n+19):nth-child(-n+27),
-.cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-bold); }
+  @media (orientation: landscape) {
+    #board {
+      width: min(440px, 48dvh);
+      height: min(440px, 48dvh);
+    }
+    .cell {
+      font-size: clamp(1.05rem, 3.3dvh, 1.6rem);
+    }
+    .note-num {
+      font-size: clamp(0.5rem, 1.3dvh, 0.7rem);
+    }
+  }
 
-.cell.fixed { color: var(--text-fixed); }
-.cell.user { color: var(--text-user); }
-.cell.highlight { background-color: var(--highlight); }
-.cell.same-num { background-color: var(--same-num); }
-.cell.selected {
-  background-color: var(--selected) !important;
-  box-shadow: inset 0 0 0 2.5px var(--selected-ring);
-}
-.cell.error-flash { background-color: var(--danger) !important; }
+  .cell:nth-child(3n) { border-right: 2px solid var(--border-bold); }
+  .cell:nth-child(9n) { border-right: none; }
+  .cell:nth-child(n+19):nth-child(-n+27),
+  .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-bold); }
 
-.notes-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  width: 100%; height: 100%; padding: 1px;
-}
-.note-num {
-  font-size: clamp(0.84rem, 3vw, 1.05rem);
-  font-weight: 600; color: var(--text-note);
-  display: flex; align-items: center; justify-content: center; line-height: 1;
-}
+  .cell.fixed { color: var(--text-fixed); }
+  .cell.user { color: var(--text-user); }
+  .cell.highlight { background-color: var(--highlight); }
+  .cell.same-num { background-color: var(--same-num); }
+  .cell.selected {
+    background-color: var(--selected) !important;
+    box-shadow: inset 0 0 0 2.5px var(--selected-ring);
+  }
+  .cell.error-flash { background-color: var(--danger) !important; }
 
-/* Botones Notas y Borrar más altos */
-.controls {
-  width: 100%; max-width: 440px;
-  display: flex; gap: 12px; flex-shrink: 0;
-  margin-top: -6px;
-}
-.tool-btn {
-  flex: 1; padding: 14px 10px; border: 1px solid var(--border-light);
-  background: var(--surface); color: var(--text-main);
-  border-radius: 12px; font-size: 1.15rem; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.tool-btn.active {
-  background: var(--accent); color: #000; border-color: var(--accent);
-}
+  .notes-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: 100%; height: 100%; padding: 1px;
+  }
+  .note-num {
+    font-size: clamp(0.84rem, 3vw, 1.05rem);
+    font-weight: 600; color: var(--text-note);
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
 
-/* Teclado en 2 filas cómodas (1-5 arriba, 6-9 abajo) */
-.numpad-wrapper {
-  width: 100%; max-width: 440px;
-  display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
-  margin-top: -5px;
-}
-.numpad-row {
-  display: flex; justify-content: center; gap: 8px; width: 100%;
-}
-.num-btn {
-  width: calc((100% - 32px) / 5);
-  height: clamp(50px, 7.2dvh, 60px);
-  background: var(--surface);
-  border: 1px solid var(--border-light); border-radius: 11px;
-  color: var(--text-main); font-size: 2.05rem; font-weight: 700;
-  cursor: pointer; position: relative;
-  display: flex; align-items: center; justify-content: center;
-}
-.num-btn:active { background: var(--accent); color: #000; }
-.num-count {
-  position: absolute; top: 3px; right: 6px;
-  font-size: 0.94rem; font-weight: 700; color: #cbd5e1;
-  line-height: 1;
-}
-.num-btn.completed {
-  background: rgba(81, 207, 102, 0.24);
-  border: 1.5px solid var(--success);
-  color: #8ce99a;
-}
-.num-btn.completed .num-count { display: none; }
+  /* Botones Notas y Borrar más altos */
+  .controls {
+    width: 100%; max-width: 440px;
+    display: flex; gap: 12px; flex-shrink: 0;
+    margin-top: -6px;
+  }
+  .tool-btn {
+    flex: 1; padding: 14px 10px; border: 1px solid var(--border-light);
+    background: var(--surface); color: var(--text-main);
+    border-radius: 12px; font-size: 1.15rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tool-btn.active {
+    background: var(--accent); color: #000; border-color: var(--accent);
+  }
 
-/* Fila inferior de Récords + Idioma */
-.bottom-bar {
-  width: 100%; max-width: 440px;
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 8px; padding: 2px 2px 4px 2px; flex-shrink: 0;
-  margin-top: -3px;
-}
-.records-group {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  font-size: clamp(0.95rem, 3.5vw, 1.08rem); font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.rec-prev { color: var(--silver); }
-.rec-best { color: var(--gold); }
-.lang-btn {
-  background: var(--surface); color: #e9ecef;
-  border: 1px solid var(--border-light); border-radius: 8px;
-  padding: 7px 11px; font-size: 0.95rem; font-weight: 700;
-  cursor: pointer; white-space: nowrap; flex-shrink: 0;
-}
+  /* Teclado en 2 filas cómodas (1-5 arriba, 6-9 abajo) */
+  .numpad-wrapper {
+    width: 100%; max-width: 440px;
+    display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
+    margin-top: -5px;
+  }
+  .numpad-row {
+    display: flex; justify-content: center; gap: 8px; width: 100%;
+  }
+  .num-btn {
+    width: calc((100% - 32px) / 5);
+    height: clamp(50px, 7.2dvh, 60px);
+    background: var(--surface);
+    border: 1px solid var(--border-light); border-radius: 11px;
+    color: var(--text-main); font-size: 2.05rem; font-weight: 700;
+    cursor: pointer; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .num-btn:active { background: var(--accent); color: #000; }
+  .num-count {
+    position: absolute; top: 3px; right: 6px;
+    font-size: 0.94rem; font-weight: 700; color: #cbd5e1;
+    line-height: 1;
+  }
+  .num-btn.completed {
+    background: rgba(81, 207, 102, 0.24);
+    border: 1.5px solid var(--success);
+    color: #8ce99a;
+  }
+  .num-btn.completed .num-count { display: none; }
 
-/* Modales (Victoria, Error, Bloqueo y Panel Secreto) */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88);
-  display: none; align-items: center; justify-content: center;
-  padding: 16px; z-index: 200;
-}
-.modal-overlay.show { display: flex; }
-.modal-card {
-  background: var(--surface); border: 1px solid var(--border-bold);
-  border-radius: 16px; padding: 26px 22px;
-  width: 100%; max-width: 410px; text-align: center;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.75);
-  display: flex; flex-direction: column; gap: 18px;
-}
-.modal-title { font-size: 1.56rem; font-weight: 800; margin: 0; color: #fff; line-height: 1.3; }
-.modal-msg { font-size: 1.22rem; color: #dee2e6; margin: 0; line-height: 1.45; }
-.record-badge {
-  background: rgba(252, 196, 25, 0.16); border: 1px solid var(--gold);
-  color: var(--gold); font-weight: 800; font-size: 1.14rem;
-  padding: 8px 14px; border-radius: 10px; display: none;
-}
-.record-badge.show { display: block; }
-.modal-stats {
-  font-size: 1.12rem; font-weight: 700; color: #ced4da;
-  background: #161616; padding: 12px; border-radius: 10px;
-  font-variant-numeric: tabular-nums; line-height: 1.55;
-}
-.btn-primary {
-  width: 100%; padding: 17px; border: none; border-radius: 12px;
-  background: var(--selected); color: #fff;
-  font-size: 1.24rem; font-weight: 800; cursor: pointer;
-}
-.btn-secondary {
-  width: 100%; padding: 15px; border: 1px solid #5c677d; border-radius: 12px;
-  background: #181818; color: #e9ecef;
-  font-size: 1.12rem; font-weight: 700; cursor: pointer;
-}
-.btn-danger {
-  width: 100%; padding: 17px; border: none; border-radius: 12px;
-  background: var(--danger); color: #fff;
-  font-size: 1.24rem; font-weight: 800; cursor: pointer;
-}
+  /* Fila inferior de Récords en 2 líneas limpias + Idioma activo */
+  .bottom-bar {
+    width: 100%; max-width: 440px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 8px; padding: 2px 2px 4px 2px; flex-shrink: 0;
+    margin-top: -3px;
+  }
+  .records-group {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+    font-size: clamp(0.95rem, 3.5vw, 1.08rem); font-weight: 600;
+    font-variant-numeric: tabular-nums; line-height: 1.25;
+  }
+  .rec-prev { color: var(--silver); }
+  .rec-best { color: var(--gold); }
+  .lang-btn {
+    background: var(--surface); color: #e9ecef;
+    border: 1px solid var(--border-light); border-radius: 8px;
+    padding: 8px 12px; font-size: 0.98rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
 
-/* Pantalla de Bloqueo */
-#lockScreen {
-  position: fixed; inset: 0; background: var(--bg);
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  padding: 20px; z-index: 300;
-}
-#lockScreen.show { display: flex; }
-.lock-top-lang {
-  position: absolute; top: 14px; right: 14px;
-}
-.input-box {
-  width: 100%; padding: 16px; border-radius: 10px;
-  border: 1px solid var(--border-bold); background: #121212;
-  color: #fff; font-size: 1.26rem; text-align: center;
-  font-weight: 700; user-select: text;
-}
-.error-text { color: var(--danger); font-size: 1.05rem; font-weight: 600; min-height: 20px; }
+  /* Modales (Victoria, Error, Bloqueo y Panel Secreto) */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px; z-index: 200;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    background: var(--surface); border: 1px solid var(--border-bold);
+    border-radius: 16px; padding: 26px 20px;
+    width: 100%; max-width: 410px; text-align: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.75);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .modal-title { font-size: clamp(1.38rem, 5.2vw, 1.56rem); font-weight: 800; margin: 0; color: #fff; line-height: 1.35; }
+  .modal-msg { font-size: clamp(1.02rem, 4.3vw, 1.22rem); color: #dee2e6; margin: 0; line-height: 1.5; }
+  .record-badge {
+    background: rgba(252, 196, 25, 0.16); border: 1px solid var(--gold);
+    color: var(--gold); font-weight: 800; font-size: 1.28rem;
+    padding: 9px 14px; border-radius: 10px; display: none;
+  }
+  .record-badge.show { display: block; }
+  .modal-stats {
+    font-size: clamp(1.02rem, 4.1vw, 1.14rem); font-weight: 700; color: #ced4da;
+    background: #161616; padding: 12px; border-radius: 10px;
+    font-variant-numeric: tabular-nums; line-height: 1.6;
+  }
+  .btn-primary {
+    width: 100%; padding: 17px; border: none; border-radius: 12px;
+    background: var(--selected); color: #fff;
+    font-size: 1.24rem; font-weight: 800; cursor: pointer;
+  }
+  .btn-secondary {
+    width: 100%; padding: 15px; border: 1px solid #5c677d; border-radius: 12px;
+    background: #181818; color: #e9ecef;
+    font-size: 1.12rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-danger {
+    width: 100%; padding: 17px; border: none; border-radius: 12px;
+    background: var(--danger); color: #fff;
+    font-size: 1.24rem; font-weight: 800; cursor: pointer;
+  }
 
-/* Panel Administrador Secreto */
-.admin-section {
-  background: #141414; border: 1px solid var(--border-light);
-  border-radius: 12px; padding: 12px; text-align: left;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.admin-label { font-size: 0.85rem; font-weight: 700; color: var(--silver); }
-.select-box {
-  width: 100%; padding: 10px; border-radius: 8px;
-  background: var(--surface); color: #fff; border: 1px solid var(--border-bold);
-  font-size: 0.95rem; font-weight: 600;
-}
-.code-display {
-  background: #0d1b2a; border: 1px dashed var(--accent);
-  padding: 10px; border-radius: 8px; text-align: center;
-  font-size: 1.25rem; font-weight: 800; color: var(--gold);
-  letter-spacing: 1px; user-select: text;
-}
-.countdown-text { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
-.small-row { display: flex; gap: 6px; }
+  /* Pantalla de Bloqueo */
+  #lockScreen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; z-index: 300;
+  }
+  #lockScreen.show { display: flex; }
+  .lock-top-lang { position: absolute; top: 14px; right: 14px; }
+  .input-box {
+    width: 100%; padding: 16px; border-radius: 10px;
+    border: 1px solid var(--border-bold); background: #121212;
+    color: #fff; font-size: 1.26rem; text-align: center;
+    font-weight: 700; user-select: text;
+  }
+  .error-text { color: var(--danger); font-size: 1.05rem; font-weight: 600; min-height: 20px; }
+
+  /* Panel Administrador Secreto */
+  .admin-section {
+    background: #141414; border: 1px solid var(--border-light);
+    border-radius: 12px; padding: 12px; text-align: left;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .admin-label { font-size: 0.85rem; font-weight: 700; color: var(--silver); }
+  .select-box {
+    width: 100%; padding: 10px; border-radius: 8px;
+    background: var(--surface); color: #fff; border: 1px solid var(--border-bold);
+    font-size: 0.95rem; font-weight: 600;
+  }
+  .code-display {
+    background: #0d1b2a; border: 1px dashed var(--accent);
+    padding: 10px; border-radius: 8px; text-align: center;
+    font-size: 1.25rem; font-weight: 800; color: var(--gold);
+    letter-spacing: 1px; user-select: text;
+  }
+  .countdown-text { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+  .small-row { display: flex; gap: 6px; }
 </style>
 </head>
 <body>
 <!-- PANTALLA DE BLOQUEO -->
 <div id="lockScreen">
-  <button class="lang-btn lock-top-lang" onclick="toggleLanguage()" id="lockLangBtn">🌐 EN</button>
+  <button class="lang-btn lock-top-lang" onclick="toggleLanguage()" id="lockLangBtn">🌐 ES</button>
   <div class="modal-card">
     <h2 class="modal-title" id="lockTitle">🔐 Sudoku Progresivo</h2>
     <p class="modal-msg" id="lockDesc">Ingresa tu código de activación exclusivo para acceder al juego.</p>
@@ -313,19 +314,18 @@
 
 <div class="bottom-bar">
   <div class="records-group">
-    <span class="rec-prev" id="prevTimeDisplay">⏱ Anterior: --:--</span>
-    <span>|</span>
-    <span class="rec-best" id="bestTimeDisplay">🏆 Mejor Principiante: --:--</span>
+    <span class="rec-prev" id="prevTimeDisplay">⏱ Tiempo anterior: --:--</span>
+    <span class="rec-best" id="bestTimeDisplay">🏆 Mejor tiempo Principiante: --:--</span>
   </div>
-  <button class="lang-btn" id="gameLangBtn" onclick="toggleLanguage()">🌐 EN</button>
+  <button class="lang-btn" id="gameLangBtn" onclick="toggleLanguage()">🌐 ES</button>
 </div>
 
 <div class="modal-overlay" id="winModal">
   <div class="modal-card">
-    <h2 class="modal-title" id="winTitle">🌟 ¡Felicidades! ¡Nivel 1 Superado!</h2>
-    <p class="modal-msg" id="winMsg">¡Excelente trabajo! Tu mente está cada vez más ágil. ¡Sigue así!</p>
+    <h2 class="modal-title" id="winTitle">🌟 ¡Felicidades!<br>¡Nivel 1 Superado!</h2>
+    <p class="modal-msg" id="winMsg">¡Excelente trabajo!<br>Tu mente está cada vez más ágil.<br>¡Sigue así!</p>
     <div class="record-badge" id="winRecordBadge">⭐ ¡Nuevo récord personal!</div>
-    <div class="modal-stats" id="winStats">⏱ Tiempo: 00:00 | 🏆 Mejor: 00:00</div>
+    <div class="modal-stats" id="winStats">⏱ Tiempo actual: 00:00<br>🏆 Mejor tiempo Principiante: 00:00</div>
     <button class="btn-primary" id="winNextBtn" onclick="advanceNextLevel()">Continuar al Nivel 2 ▶</button>
     <button class="btn-secondary" id="winReplayBtn" onclick="replayCurrentLevel()">🔄 Repetir Nivel 1 (Mejorar tiempo)</button>
   </div>
@@ -333,8 +333,8 @@
 
 <div class="modal-overlay" id="loseModal">
   <div class="modal-card">
-    <h2 class="modal-title" id="loseTitle">✨ ¡No te rindas! ¡Sigue adelante!</h2>
-    <p class="modal-msg" id="loseMsg">Cada error es parte del aprendizaje. Tómate tu tiempo, ¡tú puedes!</p>
+    <h2 class="modal-title" id="loseTitle">✨ ¡No te rindas!<br>¡Sigue adelante!</h2>
+    <p class="modal-msg" id="loseMsg">Cada error es parte del aprendizaje.<br>Tómate tu tiempo,<br>¡tú puedes!</p>
     <button class="btn-danger" id="loseRetryBtn" onclick="retryAfterError()">Reintentar Nivel 1 🔄</button>
   </div>
 </div>
@@ -377,24 +377,25 @@
   const SECRET_SALT = 7391;
 
   const BLOQUES = {
-    principiante: 20, // Niveles 1 al 20 (46 a 37 pistas)
-    intermedio: 40,   // Siguientes 40 niveles (36 a 27 pistas)
-    dificil: 60,      // Siguientes 60 niveles (26 a 22 pistas)
-    maestro: 80       // Siguientes 80 niveles (21 a 18 pistas)
-                      // En adelante: Gran Maestro infinito (17 pistas)
+    principiante: 20,
+    intermedio: 40,
+    dificil: 60,
+    maestro: 80
   };
 
   let lang = localStorage.getItem('sudoku_lang') || 'es';
 
   const I18N = {
     es: {
+      pageTitle: "Sudoku Progresivo - Cero Errores",
       level: "Nivel",
       clues: "pistas",
       notesOn: "✏️ Notas: ON",
       notesOff: "✏️ Notas: OFF",
       erase: "⌫ Borrar",
-      prev: "Anterior",
-      best: "Mejor",
+      prevTime: "Tiempo anterior",
+      bestTime: "Mejor tiempo",
+      currTime: "Tiempo actual",
       blocks: {
         principiante: "Principiante",
         intermedio: "Intermedio",
@@ -402,14 +403,13 @@
         maestro: "Maestro",
         gran_maestro: "Gran Maestro"
       },
-      winTitle: (l) => `🌟 ¡Felicidades! ¡Nivel ${l} Superado!`,
-      winMsg: "¡Excelente trabajo! Tu mente está cada vez más ágil. ¡Sigue así!",
+      winTitle: (l) => `🌟 ¡Felicidades!<br>¡Nivel ${l} Superado!`,
+      winMsg: "¡Excelente trabajo!<br>Tu mente está cada vez más ágil.<br>¡Sigue así!",
       newRecord: "⭐ ¡Nuevo récord personal!",
-      timeLbl: "Tiempo",
       nextBtn: (l) => `Continuar al Nivel ${l} ▶`,
       replayBtn: (l) => `🔄 Repetir Nivel ${l} (Mejorar tiempo)`,
-      loseTitle: "✨ ¡No te rindas! ¡Sigue adelante!",
-      loseMsg: "Cada error es parte del aprendizaje. Tómate tu tiempo, ¡tú puedes!",
+      loseTitle: "✨ ¡No te rindas!<br>¡Sigue adelante!",
+      loseMsg: "Cada error es parte del aprendizaje.<br>Tómate tu tiempo,<br>¡tú puedes!",
       retryBtn: (l) => `Reintentar Nivel ${l} 🔄`,
       lockTitle: "🔐 Sudoku Progresivo",
       lockDesc: "Ingresa tu código de activación exclusivo para acceder al juego.",
@@ -419,13 +419,15 @@
       blockedMsg: (t) => `⛔ Acceso bloqueado por seguridad. Intenta en ${t}.`
     },
     en: {
+      pageTitle: "Progressive Sudoku - Zero Errors",
       level: "Level",
       clues: "clues",
       notesOn: "✏️ Notes: ON",
       notesOff: "✏️ Notes: OFF",
       erase: "⌫ Erase",
-      prev: "Previous",
-      best: "Best",
+      prevTime: "Previous time",
+      bestTime: "Best time",
+      currTime: "Current time",
       blocks: {
         principiante: "Beginner",
         intermedio: "Intermediate",
@@ -433,14 +435,13 @@
         maestro: "Master",
         gran_maestro: "Grandmaster"
       },
-      winTitle: (l) => `🌟 Congratulations! Level ${l} Cleared!`,
-      winMsg: "Great job! Your mind is getting sharper every day. Keep it up!",
+      winTitle: (l) => `🌟 Congratulations!<br>Level ${l} Completed!`,
+      winMsg: "Great job!<br>Your mind is getting sharper every day.<br>Keep it up!",
       newRecord: "⭐ New personal record!",
-      timeLbl: "Time",
       nextBtn: (l) => `Continue to Level ${l} ▶`,
       replayBtn: (l) => `🔄 Replay Level ${l} (Beat time)`,
-      loseTitle: "✨ Don't give up! Keep going!",
-      loseMsg: "Every mistake is part of learning. Take your time, you can do it!",
+      loseTitle: "✨ Don't give up!<br>Keep going!",
+      loseMsg: "Every mistake is part of learning.<br>Take your time,<br>you've got this!",
       retryBtn: (l) => `Retry Level ${l} 🔄`,
       lockTitle: "🔐 Progressive Sudoku",
       lockDesc: "Enter your exclusive activation code to access the game.",
@@ -448,17 +449,53 @@
       lockBtn: "Activate Access",
       invalidCode: "❌ Invalid or expired code.",
       blockedMsg: (t) => `⛔ Access locked for security. Try again in ${t}.`
+    },
+    pt: {
+      pageTitle: "Sudoku Progressivo - Zero Erros",
+      level: "Nível",
+      clues: "pistas",
+      notesOn: "✏️ Notas: ON",
+      notesOff: "✏️ Notas: OFF",
+      erase: "⌫ Apagar",
+      prevTime: "Tempo anterior",
+      bestTime: "Melhor tempo",
+      currTime: "Tempo atual",
+      blocks: {
+        principiante: "Iniciante",
+        intermedio: "Intermediário",
+        dificil: "Difícil",
+        maestro: "Mestre",
+        gran_maestro: "Grão-Mestre"
+      },
+      winTitle: (l) => `🌟 Parabéns!<br>Nível ${l} Concluído!`,
+      winMsg: "Excelente trabalho!<br>Sua mente está cada vez mais ágil.<br>Continue assim!",
+      newRecord: "⭐ Novo recorde pessoal!",
+      nextBtn: (l) => `Continuar para o Nível ${l} ▶`,
+      replayBtn: (l) => `🔄 Repetir Nível ${l} (Melhorar tempo)`,
+      loseTitle: "✨ Não desista!<br>Siga em frente!",
+      loseMsg: "Cada erro faz parte do aprendizado.<br>Leve o seu tempo,<br>você consegue!",
+      retryBtn: (l) => `Tentar Nível ${l} de novo 🔄`,
+      lockTitle: "🔐 Sudoku Progressivo",
+      lockDesc: "Digite seu código de ativação exclusivo para acessar o jogo.",
+      lockPlaceholder: "Ex: SDK-8492-A7",
+      lockBtn: "Ativar Acesso",
+      invalidCode: "❌ Código inválido ou expirado.",
+      blockedMsg: (t) => `⛔ Acesso bloqueado por segurança. Tente em ${t}.`
     }
   };
+
   function toggleLanguage() {
-    lang = lang === 'es' ? 'en' : 'es';
+    lang = lang === 'es' ? 'en' : (lang === 'en' ? 'pt' : 'es');
     localStorage.setItem('sudoku_lang', lang);
     applyLanguageTexts();
   }
 
   function applyLanguageTexts() {
-    const t = I18N[lang];
-    const btnText = lang === 'es' ? '🌐 EN' : '🌐 ES';
+    const t = I18N[lang] || I18N['es'];
+    document.title = t.pageTitle;
+    document.documentElement.lang = lang;
+
+    const btnText = `🌐 ${lang.toUpperCase()}`;
     document.getElementById('gameLangBtn').textContent = btnText;
     document.getElementById('lockLangBtn').textContent = btnText;
 
@@ -500,7 +537,7 @@
   }
 
   function verifyAccessCode() {
-    const t = I18N[lang];
+    const t = I18N[lang] || I18N['es'];
     const errEl = document.getElementById('lockErrorMsg');
     const raw = document.getElementById('accessCodeInput').value.trim();
     if (!raw) return;
@@ -630,7 +667,11 @@
 
   function copyWhatsAppMessage() {
     if (!lastGeneratedCode) generateTempCode();
-    const msg = `🧩 *Sudoku Progresivo - Cero Errores*\nAquí tienes tu acceso exclusivo. Entra ahora mismo al siguiente enlace e ingresa tu código (válido por ${lastGeneratedDuration} segundos):\n\n🔗 Link: ${APP_URL}\n🔑 Código: *${lastGeneratedCode}*`;
+    const msg = `🧩 *Sudoku Progresivo - Cero Errores*
+Aquí tienes tu acceso exclusivo. Entra ahora mismo al siguiente enlace e ingresa tu código (válido por ${lastGeneratedDuration} segundos):
+
+🔗 Link: ${APP_URL}
+🔑 Código: *${lastGeneratedCode}*`;
     navigator.clipboard.writeText(msg).then(() => {
       document.getElementById('adminStatusMsg').textContent = "✅ Mensaje copiado listo para pegar en WhatsApp.";
     });
@@ -666,6 +707,7 @@
       document.getElementById('adminStatusMsg').textContent = "❌ Error al leer el respaldo.";
     }
   }
+
   let elapsedSeconds = 0;
   let timerInterval = null;
   let wakeLock = null;
@@ -715,16 +757,16 @@
   }
 
   function updateBottomRecords() {
-    const t = I18N[lang];
+    const t = I18N[lang] || I18N['es'];
     const cfg = getLevelConfig(level);
     const prevSec = localStorage.getItem('sudoku_prev_time');
     const records = JSON.parse(localStorage.getItem('sudoku_best_records') || '{}');
     const bestBlockSec = records[cfg.key] !== undefined ? records[cfg.key] : null;
 
     document.getElementById('prevTimeDisplay').textContent =
-      `⏱ ${t.prev}: ${prevSec !== null ? formatTime(parseInt(prevSec)) : '--:--'}`;
+      `⏱ ${t.prevTime}: ${prevSec !== null ? formatTime(parseInt(prevSec)) : '--:--'}`;
     document.getElementById('bestTimeDisplay').textContent =
-      `🏆 ${t.best} ${t.blocks[cfg.key]}: ${formatTime(bestBlockSec)}`;
+      `🏆 ${t.bestTime} ${t.blocks[cfg.key]}: ${formatTime(bestBlockSec)}`;
   }
 
   async function requestWakeLock() {
@@ -819,6 +861,7 @@
     solve(0);
     return board;
   }
+
   function countSolutions(board, limit = 2) {
     let idx = board.indexOf(0);
     if (idx === -1) return 1;
@@ -965,6 +1008,7 @@
     }
     updateNumpadStatus();
   }
+
   function updateNumpadStatus() {
     for (let n = 1; n <= 9; n++) {
       const count = currentBoard.filter(val => val === n).length;
@@ -978,7 +1022,7 @@
 
   function toggleNotes() {
     noteMode = !noteMode;
-    const t = I18N[lang];
+    const t = I18N[lang] || I18N['es'];
     const btn = document.getElementById('noteBtn');
     btn.textContent = noteMode ? t.notesOn : t.notesOff;
     btn.classList.toggle('active', noteMode);
@@ -1011,7 +1055,7 @@
       cells[selectedIdx].textContent = num;
       cells[selectedIdx].classList.add('error-flash');
 
-      const t = I18N[lang];
+      const t = I18N[lang] || I18N['es'];
       document.getElementById('loseTitle').innerHTML = t.loseTitle;
       document.getElementById('loseMsg').innerHTML = t.loseMsg;
       document.getElementById('loseRetryBtn').textContent = t.retryBtn(level);
@@ -1045,15 +1089,15 @@
       localStorage.setItem('sudoku_prev_time', elapsedSeconds);
       updateBottomRecords();
 
-      const t = I18N[lang];
-    document.getElementById('winTitle').innerHTML = t.winTitle(level);
-    document.getElementById('winMsg').innerHTML = t.winMsg;
-    const badge = document.getElementById('winRecordBadge');
-    badge.textContent = t.newRecord;
-    badge.classList.toggle('show', isNewRecord);
+      const t = I18N[lang] || I18N['es'];
+      document.getElementById('winTitle').innerHTML = t.winTitle(level);
+      document.getElementById('winMsg').innerHTML = t.winMsg;
+      const badge = document.getElementById('winRecordBadge');
+      badge.textContent = t.newRecord;
+      badge.classList.toggle('show', isNewRecord);
 
-    document.getElementById('winStats').innerHTML =
-      `⏱ ${t.timeLbl}: ${formatTime(elapsedSeconds)}<br>🏆 ${t.best} ${t.blocks[cfg.key]}: ${formatTime(records[cfg.key])}`;
+      document.getElementById('winStats').innerHTML =
+        `⏱ ${t.currTime}: ${formatTime(elapsedSeconds)}<br>🏆 ${t.bestTime} ${t.blocks[cfg.key]}: ${formatTime(records[cfg.key])}`;
 
       document.getElementById('winNextBtn').textContent = t.nextBtn(level + 1);
       document.getElementById('winReplayBtn').textContent = t.replayBtn(level);
