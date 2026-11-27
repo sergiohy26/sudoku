@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sudoku Progresivo - Cero Errores</title>
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231e1e1e'/%3E%3Ctext x='256' y='365' font-family='sans-serif' font-size='330' font-weight='bold' fill='%23339af0' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 
 <style>
   :root {
@@ -64,8 +64,8 @@
   /* Tablero fluido para cualquier celular y PC sin scroll */
   #board {
     display: grid; grid-template-columns: repeat(9, 1fr);
-    width: min(94vw, 440px, 50dvh);
-    height: min(94vw, 440px, 50dvh);
+    width: min(94vw, 440px, 42dvh);
+    height: min(94vw, 440px, 42dvh);
     background: var(--grid-bg); border: 2px solid var(--border-bold);
     flex-shrink: 0;
   }
