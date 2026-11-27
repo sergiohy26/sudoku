@@ -1,16 +1,22 @@
 {
-  "name": "Sudoku Progresivo",
-  "short_name": "Sudoku",
-  "start_url": "./index.html",
+  "name": "Sudoku Progresivo - Cero Errores",
+  "short_name": "Sudoku Pro",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#121212",
+  "orientation": "any",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231e1e1e'/%3E%3Crect x='24' y='24' width='464' height='464' rx='80' fill='none' stroke='%23339af0' stroke-width='20'/%3E%3Ctext x='256' y='365' font-family='sans-serif' font-size='330' font-weight='bold' fill='%23339af0' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E",
+      "src": "./icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }
