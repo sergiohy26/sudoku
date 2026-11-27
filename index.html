@@ -63,26 +63,34 @@
 
   /* Tablero fluido para cualquier celular y PC sin scroll */
   #board {
-    display: grid; grid-template-columns: repeat(9, 1fr);
-       width: min(95vw, 440px, 56dvh);
-       height: min(95vw, 440px, 56dvh);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: min(95vw, 440px, 56dvh);
+  height: min(95vw, 440px, 56dvh);
+  background: var(--grid-bg); border: 2px solid var(--border-bold); border-radius: 6px; overflow: hidden;
+  flex-shrink: 0;
+}
 
-    background: var(--grid-bg); border: 2px solid var(--border-bold);
-    flex-shrink: 0;
-  }
+.cell {
+  border: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.35rem, 5.5vw, 1.85rem);
+  font-weight: 700;
+  cursor: pointer; position: relative; transition: background 0.1s;
+  line-height: 1;
+}
+
 @media (orientation: landscape) {
   #board {
-    width: min(440px, 38dvh);
-    height: min(440px, 38dvh);
+    width: min(440px, 44dvh);
+    height: min(440px, 44dvh);
+  }
+  .cell {
+    font-size: clamp(0.85rem, 2.6dvh, 1.35rem);
   }
 }
 
-  .cell {
-    border: 1px solid var(--border-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: clamp(1.35rem, 5.2vw, 1.9rem);
-    font-weight: 700; cursor: pointer; position: relative;
-  }
   .cell:nth-child(3n) { border-right: 2px solid var(--border-bold); }
   .cell:nth-child(9n) { border-right: none; }
   .cell:nth-child(n+19):nth-child(-n+27),
