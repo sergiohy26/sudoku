@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sudoku-progresivo-v10';
+const CACHE_NAME = 'sudoku-progresivo-v11';
 const ASSETS = ['./', './index.html', './manifest.json', './favicon.svg'];
 
 self.addEventListener('install', (e) => {
